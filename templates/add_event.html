@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Add Event</title>
+</head>
+<body style="font-family: Arial, sans-serif; background-color: #f5f5f5; padding: 20px;">
+    <div class="container" style="max-width: 600px; margin: 50px auto; background-color: white; padding: 20px; border-radius: 10px; box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);">
+        <h1 style="text-align: center; color: #333;">Add Event for {{ trip.name }}</h1>
+        <form action="{{ url_for('add_event', trip_index=trip_index) }}" method="post" style="display: flex; flex-direction: column;">
+            <label for="person" style="margin-bottom: 5px; font-weight: bold;">Paid By:</label>
+            <select name="person" id="person" style="padding: 10px; margin-bottom: 15px; border-radius: 5px; border: 1px solid #ccc;">
+                {% for person in trip.persons %}
+                    <option value="{{ person.name }}">{{ person.name }}</option>
+                {% endfor %}
+            </select>
+
+            <label for="paid-for" style="margin-bottom: 5px; font-weight: bold;">Paid For:</label>
+            <input type="text" id="paid-for" name="paid-for" required style="padding: 10px; margin-bottom: 15px; border-radius: 5px; border: 1px solid #ccc;">
+
+            <label for="amount" style="margin-bottom: 5px; font-weight: bold;">Amount:</label>
+            <input type="number" id="amount" name="amount" step="0.01" required style="padding: 10px; margin-bottom: 15px; border-radius: 5px; border: 1px solid #ccc;">
+
+            <label style="font-weight: bold;">Involved Persons:</label>
+            {% for person in trip.persons %}
+                <div class="checkbox-group" style="display: flex; align-items: center; margin-bottom: 10px;">
+                    <input type="checkbox" id="{{ person.name }}" name="involved" value="{{ person.name }}" checked style="margin-right: 10px;">
+                    <label for="{{ person.name }}" style="margin: 0; font-weight: normal;">{{ person.name }}</label>
+                </div>
+            {% endfor %}
+
+            <button type="submit" style="padding: 10px; background-color: #28a745; color: white; font-size: 16px; border: none; border-radius: 5px; cursor: pointer;">Add Event</button>
+        </form>
+        <a href="{{ url_for('trip_dashboard', trip_index=trip_index) }}" style="display: block; text-align: center; margin-top: 20px; color: #007bff; text-decoration: none;">Back to Dashboard</a>
+    </div>
+</body>
+</html>

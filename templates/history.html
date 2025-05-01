@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Trip History</title>
+</head>
+<body>
+    <h1>History for {{ trip.name }}</h1>
+    {% if history %}
+    <table border="1">
+        <thead>
+            <tr>
+                <th>Paid By</th>
+                <th>Paid For</th>
+                <th>Amount</th>
+                <th>Involved Persons</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for event in history %}
+            <tr>
+                <td>{{ event.person }}</td>
+                <td>{{ event.paid_for }}</td>
+                <td>₹{{ "%.2f"|format(event.amount) }}</td>
+                <td>{{ ", ".join(event.involved_persons) }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    {% else %}
+    <p>No history available for this trip.</p>
+    {% endif %}
+    <a href="{{ url_for('trip_dashboard', trip_index=trip_index) }}">Back to Dashboard</a>
+</body>
+</html>

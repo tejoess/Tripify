@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Report - {{ trip.name }}</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body class="bg-gray-50">
+
+    <!-- Header Section -->
+    <header class="bg-gradient-to-r from-blue-600 to-blue-800 text-white py-6 shadow-lg">
+        <h1 class="text-3xl font-extrabold text-center">Expense Report for "{{ trip.name }}"</h1>
+    </header>
+
+    <!-- Main Content Section -->
+    <main class="max-w-7xl mx-auto p-6 bg-white shadow-lg rounded-lg mt-10 mb-6">
+
+        <!-- Summary Section -->
+        <section>
+            <h2 class="text-2xl font-semibold text-gray-800 mb-4">Summary</h2>
+            <ul class="list-disc pl-6 mb-8 text-gray-700">
+                {% for contribution in contributions %}
+                    <li class="mb-2">{{ contribution }}</li>
+                {% endfor %}
+            </ul>
+        </section>
+
+        <!-- Visualizations Section -->
+        <section>
+            <h2 class="text-2xl font-semibold text-gray-800 mb-4">Visualizations</h2>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                <!-- Pie Chart -->
+                <div class="bg-white p-6 rounded-lg shadow-md">
+                    <h3 class="text-xl font-semibold text-gray-800 mb-4">Overall Spending Distribution</h3>
+                    <canvas id="pieChart"></canvas>
+                </div>
+
+                <!-- Bar Chart -->
+                <div class="bg-white p-6 rounded-lg shadow-md">
+                    <h3 class="text-xl font-semibold text-gray-800 mb-4">Individual Spending</h3>
+                    <canvas id="barChart"></canvas>
+                </div>
+            </div>
+        </section>
+
+        <!-- Trip Details Section -->
+        <section class="mt-8">
+            <h2 class="text-2xl font-semibold text-gray-800 mb-4">Trip Details</h2>
+            <div class="overflow-x-auto bg-white shadow rounded-lg">
+                <table class="w-full border-collapse border border-gray-300 text-gray-700">
+                    <thead class="bg-gray-100">
+                        <tr>
+                            <th class="border border-gray-300 px-4 py-2 text-left text-gray-700 font-medium">Name</th>
+                            <th class="border border-gray-300 px-4 py-2 text-left text-gray-700 font-medium">Events Contributed</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for person in trip.persons %}
+                            <tr class="hover:bg-gray-50 transition-all">
+                                <td class="border border-gray-300 px-4 py-2">{{ person.name }}</td>
+                                <td class="border border-gray-300 px-4 py-2">
+                                    {{ trip.events | selectattr('person', 'equalto', person.name) | list | length }}
+                                </td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </section>
+
+        <!-- Navigation Section -->
+        <div class="mt-8 flex justify-between">
+            <a href="{{ url_for('trip_dashboard', trip_index=trip_index) }}" class="bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-lg shadow-md transform hover:scale-105 transition-all">
+                Back to Dashboard
+            </a>
+            <a href="{{ url_for('view_history', trip_index=trip_index) }}" class="bg-green-600 hover:bg-green-700 text-white px-6 py-3 rounded-lg shadow-md transform hover:scale-105 transition-all">
+                View History
+            </a>
+        </div>
+    </main>
+
+    <!-- Footer Section -->
+    <footer class="bg-gray-800 text-center text-white py-4 mt-10">
+        <p>&copy; {{ year }} Trip Expense Tracker. All rights reserved.</p>
+    </footer>
+
+    <!-- Script for Charts -->
+    <script>
+        // Data for charts
+        const persons = {{ trip.persons | tojson }};
+        const events = {{ trip.events | tojson }};
+
+        // Calculate total spendings for each person
+        const spendingData = persons.map(person => {
+            const name = person.name;
+            const totalSpent = events.filter(event => event.person === name)
+                                     .reduce((sum, event) => sum + event.amount, 0);
+            return { name, totalSpent };
+        });
+
+        // Extract data for Pie Chart
+        const pieLabels = spendingData.map(data => data.name);
+        const pieValues = spendingData.map(data => data.totalSpent);
+
+        // Extract data for Bar Chart
+        const barLabels = spendingData.map(data => data.name);
+        const barValues = spendingData.map(data => data.totalSpent);
+
+        // Render Pie Chart
+        const pieCtx = document.getElementById('pieChart').getContext('2d');
+        new Chart(pieCtx, {
+            type: 'pie',
+            data: {
+                labels: pieLabels,
+                datasets: [{
+                    data: pieValues,
+                    backgroundColor: ['#4CAF50', '#FFC107', '#2196F3', '#FF5722', '#9C27B0'],
+                }]
+            },
+            options: {
+                responsive: true,
+                plugins: {
+                    legend: {
+                        position: 'bottom'
+                    }
+                }
+            }
+        });
+
+        // Render Bar Chart
+        const barCtx = document.getElementById('barChart').getContext('2d');
+        new Chart(barCtx, {
+            type: 'bar',
+            data: {
+                labels: barLabels,
+                datasets: [{
+                    label: 'Total Spending',
+                    data: barValues,
+                    backgroundColor: '#2196F3',
+                }]
+            },
+            options: {
+                responsive: true,
+                scales: {
+                    y: {
+                        beginAtZero: true
+                    }
+                }
+            }
+        });
+    </script>
+
+</body>
+</html>

@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Trip Contribution Calculator</title>
+</head>
+<body style="font-family: Arial, sans-serif; margin: 0; padding: 0; background-color: #f4f4f4;">
+    <div class="logo-container" style="text-align: center; padding: 20px;">
+        <h1 style="color: #333;">Trip Contribution Calculator</h1>
+    </div>
+    <div class="nav-container" style="background-color: #007bff; padding: 10px;">
+        <nav class="nav-bar" style="text-align: center;">
+            <ul style="list-style: none; padding: 0; display: flex; justify-content: center;">
+                <li style="margin: 0 15px;"><a href="#" class="nav-link" id="new_trip" style="color: white; text-decoration: none; font-weight: bold;">New Trip</a></li>
+                <li style="margin: 0 15px;"><a href="#" class="nav-link" style="color: white; text-decoration: none; font-weight: bold;">About</a></li>
+                <li style="margin: 0 15px;"><a href="#" class="nav-link" style="color: white; text-decoration: none; font-weight: bold;">Contact Us</a></li>
+            </ul>
+        </nav>
+    </div>
+
+    <div class="trips-container" style="max-width: 600px; margin: 30px auto; padding: 20px; background-color: white; border-radius: 10px; box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);">
+        <h2 style="text-align: center; color: #333;">Your Trips</h2>
+        <div id="trips-list">
+            {% if trips %}
+                <ul style="list-style-type: none; padding: 0;">
+                    {% for trip in trips %}
+                        <li style="background: #e9ecef; margin: 10px 0; padding: 15px; border-radius: 5px; text-align: center;">
+                            <strong>{{ trip.name }}</strong> 
+                            <a href="{{ url_for('trip_dashboard', trip_index=loop.index0) }}" style="color: #007bff; text-decoration: none;">View Dashboard</a> | 
+                            <a href="{{ url_for('view_history', trip_index=loop.index0) }}" style="color: #007bff; text-decoration: none;">View History</a> | 
+                            <a href="#" onclick="deleteTrip({{ loop.index0 }})" style="color: #dc3545; text-decoration: none;">Delete Trip</a>
+                        </li>
+                    {% endfor %}
+                </ul>
+            {% else %}
+                <p style="text-align: center;">No trips available. Create a new trip to get started!</p>
+            {% endif %}
+        </div>
+    </div>
+
+    <div class="new-trip-container" id="new-trip-container" style="display: none; position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); background-color: #fff; padding: 20px; box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2); z-index: 9999;">
+        <div class="new-trip-box" style="max-width: 400px; margin: 0 auto;">
+            <h2 style="color: #333; text-align: center;">New Trip</h2>
+            <form id="new-trip-form" action="/new_trip" method="post" style="display: flex; flex-direction: column;">
+                <label for="trip-name" style="margin-bottom: 5px; font-weight: bold;">Trip Name:</label>
+                <input type="text" id="trip-name" name="trip-name" required minlength="3" maxlength="50" style="padding: 10px; margin-bottom: 10px; border-radius: 5px; border: 1px solid #ccc;">
+
+                <label for="num-persons" style="margin-bottom: 5px; font-weight: bold;">Number of Persons:</label>
+                <input type="number" id="num-persons" name="num-persons" required min="1" max="50" style="padding: 10px; margin-bottom: 10px; border-radius: 5px; border: 1px solid #ccc;">
+                
+                <div id="person-fields"></div>
+
+                <button type="submit" style="padding: 10px; background-color: #28a745; color: white; font-size: 16px; border: none; border-radius: 5px; cursor: pointer;">Create Trip</button>
+            </form>
+            <button id="close-new-trip" style="padding: 10px; background-color: #dc3545; color: white; font-size: 16px; border: none; border-radius: 5px; cursor: pointer; margin-top: 10px;">Close</button>
+        </div>
+    </div>
+
+    <script>
+        document.getElementById('new_trip').addEventListener('click', function () {
+            document.getElementById('new-trip-container').style.display = 'block';
+        });
+
+        document.getElementById('close-new-trip').addEventListener('click', function () {
+            document.getElementById('new-trip-container').style.display = 'none';
+        });
+
+        document.getElementById('num-persons').addEventListener('input', function () {
+            var numPersons = parseInt(this.value);
+            var personFields = document.getElementById('person-fields');
+            personFields.innerHTML = '';
+            if (!isNaN(numPersons) && numPersons > 0) {
+                for (var i = 0; i < numPersons; i++) {
+                    var personField = document.createElement('div');
+                    personField.innerHTML = `
+                        <label for="person-name-${i}" style="margin-bottom: 5px; font-weight: bold;">Person ${i + 1} Name:</label>
+                        <input type="text" id="person-name-${i}" name="person-name-${i}" required style="padding: 10px; margin-bottom: 10px; border-radius: 5px; border: 1px solid #ccc;">
+                    `;
+                    personFields.appendChild(personField);
+                }
+            }
+        });
+
+        function deleteTrip(index) {
+            if (confirm("Are you sure you want to delete this trip?")) {
+                fetch(`/delete_trip/${index}`, { method: "POST" })
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.success) {
+                            location.reload();
+                        } else {
+                            alert("Failed to delete trip.");
+                        }
+                    });
+            }
+        }
+    </script>
+</body>
+</html>
